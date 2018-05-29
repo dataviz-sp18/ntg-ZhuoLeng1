@@ -1,0 +1,169 @@
+---
+title: "ntg-Zhuo Leng"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#install.packages(c("ggplot2", "devtools", "dplyr", "stringr"))
+
+# some standard map packages.
+#install.packages(c("maps", "mapdata"))
+
+# the github version of ggmap, which recently pulled in a small fix I had
+# for a bug 
+#devtools::install_github("dkahle/ggmap")
+#devtools::install_github("hrbrmstr/ggalt")
+```
+#Introduction
+
+For this assignment, I analyze the Spotify 2017 playlist data based on most streamed songs throughout the year to understand the music preferences of customers in different regions using different audio features. In this dataset, preference for different music types and elements is reflected by an index and then grouped by countries. The measuring attributes in music include lyrics, genres and audio features etc.. As I was intrigued by how music preference varies by region, I developed several graphics to compare the difference among different countries more intuitively. 
+For comparison purpose, I used data from 2017 and focused on the following measurements:
+o	Danceability - How suitable a track is for dancing based on a combination of musical elements.
+o	Instrumentalness - Predicts whether a track contains no vocals. 
+o	Loudness - The overall loudness of a track in decibels (dB). 
+o	Speachiness: Detects the presence of spoken words in a track based on values from 0 to 1.The more exclusively speech-like the recording (e.g. talk show, audio book, poetry), the closer to 1.0 the attribute value.
+
+```{r}
+library(ggplot2)
+library(ggmap)
+library(maps)
+library(mapdata)
+library(dplyr)    # yes, i could have not done this and just used 'subset' instead of 'filter'
+library(ggalt)   
+#library(ggthemes) # 
+
+
+char = read.csv('country_features.csv')
+ab = read.csv('ab.csv')
+ab$ab=sapply(ab$ab,tolower)
+df = merge(char,ab,by.x='region',by.y='ab')
+head(df)
+```
+
+## Danceability map
+```{r}
+
+world <- map_data("world")
+
+gg1 <- ggplot() + 
+  geom_polygon(data = world, aes(x = long, y = lat, group = group),
+               fill = "white", color = "#7f7f7f") + 
+  coord_fixed(1.3)
+
+dff <- data.frame(region=df$country, 
+                 value=df$danceability, 
+                 stringsAsFactors=FALSE)
+
+p <- gg1 + geom_map(data=dff, map=world,
+                  aes(fill=value, map_id=region),
+                  colour="#7f7f7f", size=0.15) +scale_fill_gradient(low="darkgreen", high="yellow", name="danceability")+ theme(
+    plot.background = element_blank(),
+    panel.background = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank()) +
+  labs(x = "long", y = "lat", 
+       title = "Danceability level by country in 2017")
+p
+
+
+```
+
+##instrumentalness map
+```{r}
+
+gg2 <- ggplot() + 
+  geom_polygon(data = world, aes(x = long, y = lat, group = group),
+               fill = "white", color = "#7f7f7f") + 
+  coord_fixed(1.3)
+
+dff <- data.frame(region=df$country, 
+                 value=df$instrumentalness, 
+                 stringsAsFactors=FALSE)
+
+p2 <- gg2 + geom_map(data=dff, map=world,
+                  aes(fill=value, map_id=region),
+                  colour="#7f7f7f", size=0.15) +scale_fill_gradient(low="orange", high="darkblue", name="instrumentalness")+ theme(
+    plot.background = element_blank(),
+    panel.background = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank()) +
+  labs(x = "long", y = "lat", 
+       title = "Instrumentalness level by country in 2017")
+p2
+
+
+```
+
+
+##loudness map
+```{r}
+
+gg3 <- ggplot() + 
+  geom_polygon(data = world, aes(x = long, y = lat, group = group),
+               fill = "white", color = "#7f7f7f") + 
+  coord_fixed(1.3)
+
+dff <- data.frame(region=df$country, 
+                 value=df$loudness, 
+                 stringsAsFactors=FALSE)
+
+p3 <- gg3 + geom_map(data=dff, map=world,
+                  aes(fill=value, map_id=region),
+                  colour="#7f7f7f", size=0.15) +scale_fill_gradient(low="white", high="darkgreen", name="loudness")+ theme(
+    plot.background = element_blank(),
+    panel.background = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank()) +
+  labs(x = "long", y = "lat", 
+       title = "Loudness level by country in 2017")
+p3
+
+```
+
+##speechiness map
+```{r}
+
+gg3 <- ggplot() + 
+  geom_polygon(data = world, aes(x = long, y = lat, group = group),
+               fill = "white", color = "#7f7f7f") + 
+  coord_fixed(1.3)
+
+dff <- data.frame(region=df$country, 
+                 value=df$speechiness, 
+                 stringsAsFactors=FALSE)
+
+p3 <- gg3 + geom_map(data=dff, map=world,
+                  aes(fill=value, map_id=region),
+                  colour="#7f7f7f", size=0.15) +scale_fill_gradient(low="yellow", high="pink", name="speechiness")+ theme(
+    plot.background = element_blank(),
+    panel.background = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank()) +
+  labs(x = "long", y = "lat", 
+       title = "Speechiness level by country in 2017")
+p3
+
+```
+
+#What is the story?
+
+From the graphic I created, I was able to generate the following insights for each attribute
+o	Danceability ??? Latin America and North America countries tend to score high on dancebility, whereas South Asia and Europe countries are relatively lower, except France. 
+o	Instrumentalness ??? most of the countries have similar scores on instrumentalness, but most of Latin American countries are below average. 
+o	Loudness ??? people in Latin American and Europe countries prefer louder music, but ingeneral, the difference among all the countries are not that obvious. 
+o	Speachiness: the US, Canada and Turkey score significantly higher on speachiness than the rest of the countries. 
+
+At same time, after comparing the same country across different measurements, I discovered that Brisiel is very different from the surrounding countries: while it is low on danceability, Brisiel has significantly higher index on speachiness and instrumentalness. Another interesting country is France: it score high on all of the measurement except speachiness, which shows very different patterns from the rest of European countires. 
+
+##Why did you select this graphical form?
+
+For this analysis, I chose the geo special heat map as the form of data visualization. There are several reasons why I selected this graphical form. First of all, this type of maps can be easily interpreted. Compared to traditional heat map, geo special heat map help the audience make quick comparison among the region by providing visual stimulation, which generate a great high level overview of the data. Secondly, the geo special heat maps provide additional information for readers who are not familiar with the countries in this data set. Instead of spending additional time searching the location and size of the countries, the readers can easily gather the information from my graphics. Furthermore, this graphical form can help discover time-based trend from future analysis if adding the year attribute to each of the four measurements. 
+
+##What challenges did you encounter in creating the visualization?
+Although I find that the geo special heat map is a great graphic form to communicate the story, there are several challenges and limitations. The first challenge I faced when I was creating the graphics is that some of the country names cannot be detected by R. I need to spend extra time going through the country names in my dataset to make sure they can be matched. Another challenges is that heat map can be hard to interpreted when the difference among the regions are small. Besides, heat map is not able to show sample density from the data set. If it is not used correctly, the graphic can be misleading. To avoid this problem, I have checked outlier and sample size for each region before creating the visual. 
